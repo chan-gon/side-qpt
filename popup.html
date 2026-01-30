@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>SideQPT</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 16px;
+            width: 380px;
+            min-height: 300px;
+            background: #f9fafb;
+            color: #1a1a1a;
+        }
+
+        h3 {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0 0 8px 0;
+            font-weight: 500;
+        }
+
+        .context {
+            font-size: 13px;
+            color: #374151;
+            white-space: pre-wrap;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .context.empty {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        /* ChatGPT/Gemini style input container */
+        .input-container {
+            position: relative;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 24px;
+            padding: 8px 56px 8px 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-container:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .input-container textarea {
+            width: 100%;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 14px;
+            line-height: 1.5;
+            font-family: inherit;
+            background: transparent;
+            color: #1a1a1a;
+            min-height: 24px;
+            max-height: 100px;
+        }
+
+        .input-container textarea::placeholder {
+            color: #9ca3af;
+        }
+
+        .input-container .send-btn {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #3b82f6;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .input-container .send-btn:hover:not(:disabled) {
+            background: #2563eb;
+            transform: scale(1.05);
+        }
+
+        .input-container .send-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .input-container .send-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Settings toggle button */
+        .settings-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 12px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: #6b7280;
+            background: transparent;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .settings-toggle:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .settings-toggle.active {
+            background: #eff6ff;
+            color: #3b82f6;
+            border-color: #bfdbfe;
+        }
+
+        /* Settings panel */
+        .settings-panel {
+            display: none;
+            margin-top: 12px;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        .settings-panel.visible {
+            display: block;
+        }
+
+        .settings-panel label {
+            display: block;
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .settings-panel input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 13px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .settings-panel input[type="password"]:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .settings-panel .save-btn {
+            margin-top: 12px;
+            padding: 8px 16px;
+            font-size: 13px;
+            color: #fff;
+            background: #10b981;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .settings-panel .save-btn:hover {
+            background: #059669;
+        }
+
+        .settings-panel .save-msg {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 12px;
+            color: #10b981;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .settings-panel .save-msg.show {
+            opacity: 1;
+        }
+
+        /* Answer area */
+        #answer {
+            margin-top: 16px;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: inherit;
+            color: #1a1a1a;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #answer:empty,
+        #answer.hidden {
+            display: none;
+        }
+
+        .loading {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        /* Shortcut hint */
+        .shortcut-hint {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .shortcut-hint kbd {
+            display: inline-block;
+            padding: 2px 5px;
+            font-size: 10px;
+            font-family: inherit;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <h3>Selected Text</h3>
+    <div id="context" class="context">Fetching selection...</div>
+
+    <div class="input-container">
+        <textarea id="question" placeholder="Ask a question..." rows="1"></textarea>
+        <button id="ask" class="send-btn" title="Send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M22 2L11 13"></path>
+                <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <button id="settingsToggle" class="settings-toggle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+        </svg>
+        Settings
+    </button>
+
+    <div id="settingsPanel" class="settings-panel">
+        <label for="apiKey">OpenAI API Key</label>
+        <input type="password" id="apiKey" placeholder="sk-...">
+        <button id="saveApiKey" class="save-btn">Save</button>
+        <span id="saveMsg" class="save-msg">✓ Saved</span>
+        <div class="shortcut-hint">
+            Tip: Use <kbd>Alt</kbd>+<kbd>S</kbd> to open quickly
+        </div>
+    </div>
+
+    <div id="answer" class="hidden"></div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Side QPT Settings</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 12px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+        }
+
+        button {
+            margin-top: 8px;
+        }
+
+        small {
+            color: #555;
+            display: block;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h3>OpenAI API Key</h3>
+    <input id="key" type="password" placeholder="sk-..." />
+    <button id="save">Save</button>
+    <button id="clear">Clear</button>
+    <div id="status"></div>
+
+    <small>
+        키는 로컬(chrome.storage.local)에 저장됩니다. 공용 PC에서는 사용하지 마세요.
+    </small>
+
+    <script src="options.js"></script>
+</body>
+
+</html>
