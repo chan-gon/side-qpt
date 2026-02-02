@@ -127,12 +127,37 @@ function submitQuestion() {
                 return;
             }
             if (res.error) {
-                answerEl.textContent = `Error: ${res.error}`;
+                answerEl.textContent = getErrorMessage(res.error);
                 return;
             }
-            answerEl.textContent = res.answer || "(Empty)";
+            answerEl.textContent = res.answer || "(No answer received)";
         }
     );
+}
+
+// Retrieve user-friendly error message
+function getErrorMessage(error) {
+    if (typeof error !== "string") {
+        return "Something went wrong. Please try again.";
+    }
+
+    // 인증 오류 (API Key 문제)
+    if (error.includes("HTTP 401") || error.includes("invalid_api_key")) {
+        return "Authentication failed. Please check your API key.";
+    }
+
+    // 요청 제한
+    if (error.includes("HTTP 429")) {
+        return "Too many requests. Please wait a moment and try again.";
+    }
+
+    // 네트워크 / 서버 문제
+    if (error.includes("Network") || error.includes("fetch")) {
+        return "Network error. Please check your internet connection.";
+    }
+
+    // 그 외
+    return "Unexpected error occurred. Please try again later.";
 }
 
 // Click handler for submit button
