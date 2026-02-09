@@ -5,6 +5,47 @@
     <meta charset="UTF-8">
     <title>SideQPT</title>
     <style>
+        /* ... existing styles ... */
+
+        /* History Item Styles */
+        .history-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .history-item:hover {
+            background: #f3f4f6;
+        }
+
+        .history-item .q-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item .a-preview {
+            font-size: 11px;
+            color: #6b7280;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item .timestamp {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 4px;
+            text-align: right;
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -14,7 +55,7 @@
             margin: 0;
             padding: 16px;
             width: 380px;
-            min-height: 300px;
+            /* removed min-height to auto-fit content */
             background: #f9fafb;
             color: #1a1a1a;
         }
@@ -206,6 +247,7 @@
 
         /* Answer area */
         #answer {
+            position: relative;
             margin-top: 16px;
             padding: 16px;
             background: #fff;
@@ -213,17 +255,50 @@
             border-radius: 12px;
             font-size: 14px;
             line-height: 1.6;
-            white-space: pre-wrap;
-            word-wrap: break-word;
             font-family: inherit;
             color: #1a1a1a;
             max-height: 200px;
             overflow-y: auto;
         }
 
-        #answer:empty,
         #answer.hidden {
             display: none;
+        }
+
+        #answerText {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            padding-right: 12px;
+            /* Space for close button if extremely compact, usually close button is top right */
+        }
+
+        /* Close button for answer */
+        .close-answer-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
+            padding: 0;
+        }
+
+        .close-answer-btn:hover {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .close-answer-btn svg {
+            width: 14px;
+            height: 14px;
         }
 
         .loading {
@@ -251,7 +326,7 @@
 </head>
 
 <body>
-    <h3>Selected Text</h3>
+    <h3 id="status-header">Selected Text</h3>
     <div id="context" class="context">Fetching selection...</div>
 
     <div class="input-container">
@@ -265,15 +340,26 @@
         </button>
     </div>
 
-    <button id="settingsToggle" class="settings-toggle">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-            </path>
-        </svg>
-        Settings
-    </button>
+    <div class="footer-controls" style="display: flex; gap: 8px; margin-top: 12px;">
+        <button id="settingsToggle" class="settings-toggle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+            </svg>
+            Settings
+        </button>
+
+        <button id="historyToggle" class="settings-toggle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            History
+        </button>
+    </div>
 
     <div id="settingsPanel" class="settings-panel">
         <label for="apiKey">OpenAI API Key</label>
@@ -285,7 +371,28 @@
         </div>
     </div>
 
-    <div id="answer" class="hidden"></div>
+    <div id="historyPanel" class="settings-panel" style="max-height: 250px; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <label style="margin: 0;">History (Last 50)</label>
+            <button id="clearHistory"
+                style="font-size: 11px; color: #ef4444; background: none; border: none; cursor: pointer;">Clear
+                All</button>
+        </div>
+        <div id="historyList" style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="loading" style="font-size: 12px;">No history yet.</div>
+        </div>
+    </div>
+
+    <div id="answer" class="hidden">
+        <button id="closeAnswer" class="close-answer-btn" title="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+        <div id="answerText"></div>
+    </div>
 
     <script src="popup.js"></script>
 </body>

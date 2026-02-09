@@ -5,6 +5,7 @@
     "version": "1.0",
     "icons": {
         "16": "assets/icon16.png",
+        "32": "assets/icon32.png",
         "48": "assets/icon48.png",
         "128": "assets/icon128.png"
     },
@@ -12,6 +13,7 @@
         "default_popup": "popup.html",
         "default_icon": {
             "16": "assets/icon16.png",
+            "32": "assets/icon32.png",
             "48": "assets/icon48.png",
             "128": "assets/icon128.png"
         }
@@ -20,7 +22,7 @@
         "_execute_action": {
             "suggested_key": {
                 "default": "Alt+S",
-                "mac": "Alt+S"
+                "mac": "Command+Shift+S"
             },
             "description": "Open SideQPT popup"
         }
