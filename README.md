@@ -183,7 +183,7 @@ sideq-extension/
 
 ## License
 
-MIT License - feel free to use and modify.
+MIT License - feel free to open issues, improve the features or fix bugs.
 
 ## Privacy Policy
 
