@@ -41,24 +41,17 @@ async function getSelection() {
             return;
         }
 
-        // Try to get selection via content script
+        // Try to get selection via scripting API (activeTab permission)
         try {
-            const response = await chrome.tabs.sendMessage(tab.id, { type: "CS_GET_SELECTION" });
-            contextText = response?.text || "";
+            const results = await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => window.getSelection()?.toString().trim() || ""
+            });
+            contextText = results?.[0]?.result || "";
         } catch (e) {
-            // Content script might not be injected yet, try to inject it
-            try {
-                await chrome.scripting.executeScript({
-                    target: { tabId: tab.id },
-                    func: () => window.getSelection()?.toString().trim() || ""
-                }).then((results) => {
-                    contextText = results?.[0]?.result || "";
-                });
-            } catch (scriptError) {
-                console.log("Cannot inject script:", scriptError);
-                handleNoSelection();
-                return;
-            }
+            console.log("Cannot execute script (likely restricted page):", e);
+            handleNoSelection();
+            return;
         }
 
         if (contextText) {

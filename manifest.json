@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "SideQPT",
+    "name": "SideQPT: Stay Curious, Stay on Page",
     "description": "Ask quick questions about selected text and get AI-powered answers on any webpage.",
     "version": "1.0",
     "icons": {
@@ -39,16 +39,5 @@
     ],
     "host_permissions": [
         "https://api.openai.com/*"
-    ],
-    "content_scripts": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "content.js"
-            ],
-            "run_at": "document_idle"
-        }
     ]
 }

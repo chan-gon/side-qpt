@@ -34,14 +34,17 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 });
 
 // Get selection from content script
-function getSelectionFromContent(tabId) {
-    return new Promise((resolve) => {
-        chrome.tabs.sendMessage(
-            tabId,
-            { type: "CS_GET_SELECTION" },
-            (res) => resolve(res?.text || "")
-        );
-    });
+async function getSelectionFromContent(tabId) {
+    try {
+        const results = await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            func: () => window.getSelection()?.toString().trim() || ""
+        });
+        return results?.[0]?.result || "";
+    } catch (e) {
+        console.warn("Failed to get selection via scripting:", e);
+        return "";
+    }
 }
 
 // Handle messages from popup
