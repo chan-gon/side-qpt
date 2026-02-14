@@ -79,10 +79,38 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
 });
 
-function getApiKey() {
+import { decryptApiKey, isKeyExpired } from './crypto-utils.js';
+
+async function getApiKey() {
+    // 1. Try session storage first (fastest)
+    const sessionFn = () => new Promise(resolve => chrome.storage.session.get(['apiKey'], res => resolve(res.apiKey)));
+    const sessionKey = await sessionFn();
+    if (sessionKey) return sessionKey;
+
+    // 2. Try local storage (encrypted)
     return new Promise((resolve) => {
-        chrome.storage.local.get(["openaiApiKey"], (res) => {
-            resolve((res.openaiApiKey || "").trim());
+        chrome.storage.local.get(["encryptedApiKey"], async (res) => {
+            if (!res.encryptedApiKey) {
+                resolve("");
+                return;
+            }
+
+            // 3. Check expiry
+            if (isKeyExpired(res.encryptedApiKey.timestamp)) {
+                await chrome.storage.local.remove("encryptedApiKey");
+                resolve("");
+                return;
+            }
+
+            // 4. Decrypt
+            const decrypted = await decryptApiKey(res.encryptedApiKey);
+
+            if (decrypted) {
+                // 5. Cache in session
+                await chrome.storage.session.set({ apiKey: decrypted });
+            }
+
+            resolve(decrypted || "");
         });
     });
 }

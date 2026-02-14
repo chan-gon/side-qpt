@@ -124,18 +124,66 @@ if (closeAnswerBtn) {
     };
 }
 
+import { encryptApiKey, decryptApiKey, isKeyExpired } from './crypto-utils.js';
+
+// ... existing code ...
+
 // Load existing API key
 async function loadApiKey() {
-    const result = await chrome.storage.local.get(["openaiApiKey"]);
-    if (result.openaiApiKey) {
-        apiKeyInput.value = result.openaiApiKey;
+    // Try session first for speed
+    const sessionFn = () => new Promise(resolve => chrome.storage.session.get(['apiKey'], res => resolve(res.apiKey)));
+    const sessionKey = await sessionFn();
+
+    if (sessionKey) {
+        apiKeyInput.value = sessionKey; // Show key (or mask it)
+        return;
+    }
+
+    // fallback to local encrypted
+    const result = await chrome.storage.local.get(["encryptedApiKey"]);
+    if (result.encryptedApiKey) {
+        if (!isKeyExpired(result.encryptedApiKey.timestamp)) {
+            // We don't necessarily need to decrypt to show it exists, 
+            // but if we want to show it in the input:
+            try {
+                const decrypted = await decryptApiKey(result.encryptedApiKey);
+                if (decrypted) apiKeyInput.value = decrypted;
+            } catch (e) {
+                // ignore
+            }
+        }
     }
 }
 
 // Save API key
 saveApiKeyBtn.onclick = async () => {
     const key = apiKeyInput.value.trim();
-    await chrome.storage.local.set({ openaiApiKey: key });
+
+    if (!key) {
+        // Handle clearing key
+        await chrome.storage.local.remove(["encryptedApiKey"]);
+        await chrome.storage.session.remove(["apiKey"]);
+        apiKeyInput.value = "";
+    } else {
+        // Validate format briefly
+        if (!key.startsWith("sk-")) {
+            alert("API Key should start with 'sk-'");
+            return;
+        }
+
+        try {
+            const encrypted = await encryptApiKey(key);
+            await chrome.storage.local.set({ encryptedApiKey: encrypted });
+            await chrome.storage.session.set({ apiKey: key });
+
+            // Clean up old insecure storage if it exists
+            await chrome.storage.local.remove(["openaiApiKey"]);
+        } catch (e) {
+            console.error("Save failed", e);
+            alert("Failed to save securely. Please try again.");
+            return;
+        }
+    }
 
     // Show saved message
     saveMsg.classList.add("show");
