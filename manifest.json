@@ -22,7 +22,7 @@
         "_execute_action": {
             "suggested_key": {
                 "default": "Alt+S",
-                "mac": "Command+Shift+S"
+                "mac": "Option+Shift+S"
             },
             "description": "Open SideQPT popup"
         }
@@ -38,8 +38,7 @@
         "activeTab"
     ],
     "host_permissions": [
-        "https://api.openai.com/*",
-        "<all_urls>"
+        "https://api.openai.com/*"
     ],
     "content_scripts": [
         {
